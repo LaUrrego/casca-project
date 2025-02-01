@@ -1,0 +1,24 @@
+# Virtual environment
+bankenv/
+venv/
+.env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
+
+# Temporary files
+*.bak
+*.swp
+*.tmp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Uploads and output directories
+uploads/
+output/
