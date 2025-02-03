@@ -7,14 +7,14 @@ from lloyds_parser import parse_lloyds_statement
 from us_bank_parser import parse_us_bank_statement, process_document
 from commonwealth_bank_parser import parse_full_featured_statement
 from general_bank_parser import parse_unknown_statement
-from sample_ml import BetterTransactionClassifier
+from ml_transaction_classifier import MLTransactionClassifier
 from analysis import analyze_transactions
 import os
 import shutil
 
 app = FastAPI()
 
-classifier = BetterTransactionClassifier()
+classifier = MLTransactionClassifier()
 classifier.train_classifier("trainingdata.csv")
 
 # Known identifiers based on statement text
