@@ -225,8 +225,4 @@ def parse_lloyds_statement(pdf_path):
             'statement_info': extract_lloyds_summary(first_page),
             'transactions': parse_transactions(full_text)
         }
-    return format_output(output)
-
-def format_output(parsed_data):
-    """Format the parsed data as JSON with proper indentation"""
-    return json.dumps(parsed_data, indent=2)
+    return output

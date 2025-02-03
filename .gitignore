@@ -21,4 +21,6 @@ Thumbs.db
 
 # Uploads and output directories
 uploads/
-output/
+backend/output/*
+!backend/output/.gitkeep
+input/

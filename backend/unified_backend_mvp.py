@@ -1,5 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import json
 from combined_check_transaction_parser import extract_text_from_pdf
 from idfc_parser import parse_idfc_statement
@@ -11,11 +13,72 @@ from ml_transaction_classifier import MLTransactionClassifier
 from analysis import analyze_transactions
 import os
 import shutil
+import re
+from collections import Counter
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    'http://localhost:5173'
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,         # Allows the specified origins
+    allow_credentials=True,
+    allow_methods=["*"],           # Allows all HTTP methods
+    allow_headers=["*"],           # Allows all headers
+)
+
+app.mount("/output", StaticFiles(directory="output"), name="output")
+
 classifier = MLTransactionClassifier()
 classifier.train_classifier("trainingdata.csv")
+
+
+def extract_currency(text, options=None):
+    # Define currency patterns and keywords
+    currency_patterns = {
+        "USD": [r"\$\s?\d+[\.,]?\d*"],
+        "GBP": [r"£\s?\d+[\.,]?\d*", r"\bGBP\b"],
+        "EUR": [r"€\s?\d+[\.,]?\d*", r"\bEUR\b"],
+        "INR": [r"₹\s?\d+[\.,]?\d*", r"\bINR\b", r"\bRupees?\b"],
+        "AUD": [r"AUD\s?\d+[\.,]?\d*", r"\$\s?\d+[\.,]?\d+\s*CR"],
+        "CAD": [r"C\$"],
+        "JPY": [r"¥\s?\d+[\.,]?\d*", r"\bJPY\b"],
+        "CHF": [r"\bCHF\b\s?\d+[\.,]?\d*"],
+        "CNY": [r"\bCNY\b", r"RMB"],
+    }
+
+    # Extend patterns with custom options if provided
+    if options and isinstance(options, dict):
+        for currency, custom_patterns in options.items():
+            if currency in currency_patterns:
+                currency_patterns[currency].extend(custom_patterns)
+            else:
+                currency_patterns[currency] = custom_patterns
+
+    # Count currency occurrences
+    currency_counts = Counter()
+    for currency, patterns in currency_patterns.items():
+        for pattern in patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            currency_counts[currency] += len(matches)
+
+    # Choose the currency with the most occurrences
+    if currency_counts:
+        most_common_currency, highest_count = currency_counts.most_common(1)[0]
+
+        # Additional consistency check: Ensure this currency appears consistently near important phrases
+        if re.search(rf"Balance|Closing Balance|CURRENCY\s*:\s*{most_common_currency}", text, re.IGNORECASE):
+            return most_common_currency
+        else:
+            # If context is unclear, return the currency with the most matches
+            return most_common_currency
+
+    return "Currency not found"
+
 
 # Known identifiers based on statement text
 def determine_bank(text):
@@ -76,6 +139,8 @@ async def process_statement(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     extracted_text = extract_text_from_pdf(pdf_path)
+    currency = extract_currency(extracted_text)
+
     bank_type = determine_bank(extracted_text)
 
     parsed_data = parse_statement(pdf_path, bank_type)
@@ -87,10 +152,10 @@ async def process_statement(file: UploadFile = File(...)):
         parsed_data['transactions'] = []
 
     categorized_transactions = classifier.predict_categories(parsed_data['transactions'])
-    print("these are categorized: ", categorized_transactions)
+    # print("these are categorized: ", categorized_transactions)
     # Clean up check data:
-    # - Only keep image_file for to_review category
-    # - Empty string for check_no and image_file for non-check transactions
+    # Only keep image_file for to_review category
+    # Empty string for check_no and image_file for non-check transactions
     for txn in categorized_transactions:
         if txn.get('category') != 'to_review':
             txn['check_no'] = ""
@@ -98,8 +163,10 @@ async def process_statement(file: UploadFile = File(...)):
 
     analysis_result = analyze_transactions(categorized_transactions)
 
-    # Add balances from parsed data if available
+    # Add balances from parsed data if available and currency details
     analysis_result['statement_info'] = parsed_data.get('statement_info', {})
+    analysis_result['currency'] = currency
+
 
     def clean_json_values(data):
         if isinstance(data, dict):
@@ -144,3 +211,4 @@ async def update_transaction(data: dict):
 
     return JSONResponse(content={"message": "Model Updated!"})
 
+## run via uvicorn unified_backend_mvp:app --reload   

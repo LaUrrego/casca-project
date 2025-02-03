@@ -247,10 +247,3 @@ def process_document(pdf_path: str, output_dir: str) -> Dict:
     
     return result
 
-pdf_path = "statement3.pdf"
-output_dir = "output"
-result = process_document(pdf_path, output_dir)
-
-# Save results to JSON
-with open(os.path.join(output_dir, "check_data.json"), "w") as f:
-    json.dump(result, f, indent=2)
