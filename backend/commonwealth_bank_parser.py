@@ -16,6 +16,7 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
 
     # Regex to detect date patterns like "14 Oct 2017" or "14 Oct"
     DATE_REGEX = re.compile(r"\b(\d{1,2}\s+[A-Za-z]{3}(?:\s+\d{4})?)\b", re.IGNORECASE)
+    # DATE_REGEX = re.compile(r"\b(\d{1,2}\s+[A-Za-z]{3}(?:\s+\d{4})?)(?=\s|[A-Z])", re.IGNORECASE)
 
     REQUIRED_HEADERS = {"Date", "Transaction", "Debit", "Credit"}
 
@@ -104,8 +105,26 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
                 return find_header_columns(ln)
         return {}
 
+    # def in_column(x_mid: float, col: Tuple[float,float], buffer: float) -> bool:
+    #     return (col[0] - buffer) <= x_mid <= (col[1] + buffer)
+    
     def in_column(x_mid: float, col: Tuple[float,float], buffer: float) -> bool:
-        return (col[0] - buffer) <= x_mid <= (col[1] + buffer)
+        """
+        More precise column detection:
+        - Use smaller buffer for debit column
+        - Consider relative position between debit and credit columns
+        """
+        col_start, col_end = col
+        
+        # If checking debit column
+        if col_end < 400:  # Debit column ends before x=400
+            # Use tighter buffer for debit column
+            return (col_start - 3.0) <= x_mid <= (col_end + 3.0)
+        
+        # If checking credit column
+        else:
+            # Use normal buffer for credit column
+            return (col_start - buffer) <= x_mid <= (col_end + buffer)
 
     def extract_date_chunks(text: str) -> List[Tuple[str,str]]:
         """
@@ -131,6 +150,7 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
             chunks.append((date_val, desc_str))
         
         return chunks
+
 
     def parse_all_amounts_in_line(line_words: List[Dict], columns: Dict[str, Tuple[float,float]]) -> List[Decimal]:
         """
@@ -173,9 +193,11 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
 
         # Sort by x-coordinate just in case they overlap or appear in different positions
         amounts_with_x.sort(key=lambda x: x[0])
-
+        ##############################################################################
+        print("Amounts with x:\n", amounts_with_x)
         # Return them in left-to-right order
         return [amt for (_, amt) in amounts_with_x]
+
 
     ################ MAIN LOGIC ################
     all_pages = []
@@ -295,6 +317,24 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
                 continue
 
             pairs_to_create = min(len(date_chunks), len(amounts))
+
+            # If exactly two transactions on this line, check if the amounts appear reversed.
+            if pairs_to_create == 2:
+                # Convert the transaction descriptions to lowercase for a case-insensitive check.
+                first_desc_lower = date_chunks[0][1].lower()
+                second_desc_lower = date_chunks[1][1].lower()
+                # Heuristic:
+                # - If the first transaction description contains "transfer from" or "credit"
+                #   (indicating it should be a credit, i.e. positive) but the first extracted amount is negative,
+                # - And if the second description indicates a debit (contains "debit")
+                #   (so it should be negative),
+                # then swap the order of the amounts.
+                if (("transfer from" in first_desc_lower or "credit" in first_desc_lower) and
+                    ("debit" in second_desc_lower) and
+                    amounts[0] < 0 and amounts[1] > 0):
+                    # Swap the amounts so that the first gets the credit and the second gets the debit.
+                    amounts = [amounts[1], amounts[0]]
+
 
             for i in range(pairs_to_create):
                 d_val, d_desc = date_chunks[i]

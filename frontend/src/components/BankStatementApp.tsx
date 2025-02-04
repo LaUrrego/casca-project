@@ -329,7 +329,6 @@ const BankStatementApp: React.FC = () => {
         </Card>
       )}
 
-      {/* Main content when data is present */}
       {data && (
         <>
           {/* Summary Cards */}
