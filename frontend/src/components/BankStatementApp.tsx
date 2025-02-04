@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logo from './casca_logo.png'
 import {
   Card,
   CardContent,
@@ -99,7 +100,7 @@ const BankStatementApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [trainMessage, setTrainMessage] = useState<string | null>(null);
 
-  // 1. Get currency symbol
+  // Get currency symbol
   const getCurrencySymbol = (currency: string) => {
     const symbols: { [key: string]: string } = {
       USD: '$',
@@ -110,7 +111,6 @@ const BankStatementApp: React.FC = () => {
     return symbols[currency] || currency;
   };
 
-  // 2. Format amounts
   const formatAmount = (amount: number, currency: string) => {
     const symbol = getCurrencySymbol(currency);
     return `${symbol}${Math.abs(amount).toLocaleString(undefined, {
@@ -119,7 +119,6 @@ const BankStatementApp: React.FC = () => {
     })}`;
   };
 
-  // 3. Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -127,7 +126,7 @@ const BankStatementApp: React.FC = () => {
     }
   };
 
-  // 4. Submit file for analysis
+  // Handler for processing statements 
   const handleSubmit = async () => {
     if (!selectedFile) return;
     setIsLoading(true);
@@ -149,7 +148,7 @@ const BankStatementApp: React.FC = () => {
     }
   };
 
-  // 5. Reset the analysis
+  // Reset app to try again
   const resetAnalysis = () => {
     setData(null);
     setSelectedFile(null);
@@ -158,14 +157,14 @@ const BankStatementApp: React.FC = () => {
     setSelectedTransaction(null);
   };
 
-  // 6. Click a transaction to review
+  // Handler to click table rows and update transactions
   const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setTrainMessage(null);
     setShowReviewModal(true);
   };
 
-  // 7. Update transaction + retrain model
+  // Submit handler for updating transactions to train the ML model via updated csv
   const handleTransactionUpdate = async () => {
     if (!selectedTransaction || !data) return;
 
@@ -182,7 +181,7 @@ const BankStatementApp: React.FC = () => {
         setData((prev) => {
           if (!prev) return prev;
 
-          // 7a. Find the old transaction
+          // Find the old transaction
           const oldTransaction = prev.all_transactions.find(
             (t) => t.check_no === selectedTransaction.check_no
           );
@@ -191,12 +190,12 @@ const BankStatementApp: React.FC = () => {
           const newCategory = selectedTransaction.category;
           const newAmount = parseFloat(selectedTransaction.amount);
 
-          // 7b. Update the all_transactions array
+          // Update the all_transactions array
           const updatedAll = prev.all_transactions.map((t) =>
             t.check_no === selectedTransaction.check_no ? selectedTransaction : t
           );
 
-          // 7c. Update category breakdown
+          // Update category breakdown
           const updatedBreakdown = { ...prev.category_breakdown };
 
           // Subtract from old category total
@@ -227,16 +226,15 @@ const BankStatementApp: React.FC = () => {
     }
   };
 
-  // Colors for Pie Chart
   const pieColors = [
-    '#f97316', // orange-500
-    '#14b8a6', // teal-500
-    '#e11d48', // rose-600
-    '#eab308', // yellow-500
-    '#6366f1', // indigo-500
-    '#10b981', // emerald-500
-    '#ec4899', // pink-500
-    '#3b82f6', // blue-500
+    '#f97316', 
+    '#14b8a6', 
+    '#e11d48', 
+    '#eab308', 
+    '#6366f1', 
+    '#10b981', 
+    '#ec4899',
+    '#3b82f6', 
   ];
 
   return (
@@ -245,10 +243,17 @@ const BankStatementApp: React.FC = () => {
       style={{ fontFamily: 'Inter, sans-serif' }}
     >
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-800 drop-shadow-sm">
-          Bank Statement Analysis
-        </h1>
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col items-center md:items-start gap-2">
+          <img
+            src={logo}
+            alt="Company Logo"
+            className="h-16 w-auto object-contain"
+          />
+          <h1 className="text-2xl font-bold tracking-tight text-gray-800">
+            Bank Statement Analysis - MVP
+          </h1>
+        </div>
 
         {data && (
           <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
@@ -622,7 +627,7 @@ const BankStatementApp: React.FC = () => {
           <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
             <DialogContent
               aria-describedby="review-transaction-description"
-              className="max-w-2xl w-[90%] max-h-[90vh] overflow-y-auto p-6"
+              className="w-[90%] sm:max-w-2xl p-6 max-h-[100vh] overflow-y-auto scale-[0.97]"
             >
               <DialogHeader className='mb-4'>
                 <DialogTitle>Review Transaction</DialogTitle>
@@ -727,7 +732,7 @@ const BankStatementApp: React.FC = () => {
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[600px] overflow-y-auto">
                         {Object.keys(data.category_breakdown).map((category) => (
                           <SelectItem key={category} value={category}>
                             {category.replace('_', ' ')}
