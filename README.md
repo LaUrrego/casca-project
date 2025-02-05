@@ -1,6 +1,353 @@
-# casca-project
+# Casca Engineering Intern Coding Challenge
+# Frontend
+A React-based web application for analyzing bank statements serving as an MVP for the Casca Engineering Intern coding challenge. Features real-time transaction categorization, interactive visualizations, and anomaly detection. The interface is styled using Tailwind CSS, incorporating shadcn/ui components.
 
-# backend 
+## Features
+### Core Functionality
+
+- PDF Bank Statement Upload
+- Automated Transaction Analysis
+- Real-time Data Processing
+- Currency Support (USD, EUR, GBP, JPY)
+- Interactive Transaction Management
+
+### Data Visualization
+
+- Transaction History Line Chart
+- Category Distribution Pie Chart
+- Comprehensive Financial Summary
+- Unusual Activity Detection
+
+### Transaction Management
+
+- Interactive Transaction Table
+- Category-based Filtering
+- Transaction Review Modal
+- ML-model Training Integration
+
+## UI Components
+The application utilizes the following major components:
+
+### Dashboard Elements
+
+- Summary Cards (Income, Expenses, Net Change)
+- Transaction History Graph
+- Category Distribution Chart
+- Tabbed Interface for Different Views
+
+### Interactive Features
+
+- File Upload Interface
+- Transaction Review Modal
+- Category Selection
+- Data Update System
+
+## Technical Implementation
+
+### Key Components
+
+### BankStatementApp (Main Component)
+
+```
+interface Transaction {
+  check_no: string;
+  date: string;
+  description: string;
+  amount: string;
+  category: string;
+  image_file?: string;
+  is_unusual?: boolean;
+}
+
+interface StatementData {
+  summary: {
+    total_income: number;
+    total_expenses: number;
+    net_change: number;
+    largest_expense: { amount: number, description: string, date: string };
+    largest_income: { amount: number, description: string, date: string };
+  };
+  all_transactions: Transaction[];
+  currency: string;
+  category_breakdown: { [key: string]: number };
+  statement_info: {
+    opening_balance: number;
+    closing_balance: number;
+  };
+  unusual_transactions: Transaction[];
+}
+```
+
+### Data Visualization
+
+- Uses Recharts for responsive charts
+- Implements both line and pie charts
+- Custom formatting for currency display
+
+### Transaction Management
+
+- Interactive data tables
+- Modal-based transaction editing
+- Category management system
+
+## State Management
+
+The application manages several key states:
+
+```
+const [data, setData] = useState<StatementData | null>(null);
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+const [showReviewModal, setShowReviewModal] = useState(false);
+const [isLoading, setIsLoading] = useState(false);
+const [trainMessage, setTrainMessage] = useState<string | null>(null);
+```
+
+## API Integration
+The application connects to a backend service with the following endpoints:
+
+- ```/process-statement``` - PDF processing and initial analysis
+- ```/update-transaction``` - Transaction updates and model training
+
+## Features in Detail
+
+### Statement Processing
+
+- Supports PDF file upload
+- Automated data extraction
+- Real-time processing status updates
+- For statements with check-images (currently only US Bank for now), extracts individual checks and displays them in a modal view for users to provide granular detail changes to description, categorization, or amount. 
+
+### Data Analysis
+
+- Transaction categorization
+- Anomaly detection
+- Spending pattern analysis
+- Historical trend visualization
+
+## Setup and Installation
+### Prerequisites
+
+- Node.js (v16.8 or higher)
+- npm or yarn
+
+### Installation Steps
+
+```
+# Clone repository
+git clone https://github.com/LaUrrego/casca-project.git
+
+# Move into frontend
+cd frontend
+```
+
+-  Install base dependencies:
+```
+npm install
+```
+
+- Setup Tailwind CSS for Vite, official documentation [here](https://tailwindcss.com/docs/installation/using-vite) `note: There are current known uses installing shadecn/ui and Tailwind 4. Recommend using @3.4.17 for now.`:
+
+```
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss@3.4.17 init --full
+```
+
+- Configure your `tailwind.config.js`:
+```
+/** @type {import('tailwindcss').Config} */
+export default {
+	darkMode: ["class"],
+	content: [
+	  './pages/**/*.{ts,tsx}',
+	  './components/**/*.{ts,tsx}',
+	  './app/**/*.{ts,tsx}',
+	  './src/**/*.{ts,tsx}',
+	],
+	prefix: "",
+	theme: {
+	  container: {
+		center: true,
+		padding: "2rem",
+		screens: {
+		  "2xl": "1400px",
+		},
+	  },
+	  extend: {
+		colors: {
+		  border: "hsl(var(--border))",
+		  input: "hsl(var(--input))",
+		  ring: "hsl(var(--ring))",
+		  background: "hsl(var(--background))",
+		  foreground: "hsl(var(--foreground))",
+		  primary: {
+			DEFAULT: "hsl(var(--primary))",
+			foreground: "hsl(var(--primary-foreground))",
+		  },
+		  secondary: {
+			DEFAULT: "hsl(var(--secondary))",
+			foreground: "hsl(var(--secondary-foreground))",
+		  },
+		  destructive: {
+			DEFAULT: "hsl(var(--destructive))",
+			foreground: "hsl(var(--destructive-foreground))",
+		  },
+		  muted: {
+			DEFAULT: "hsl(var(--muted))",
+			foreground: "hsl(var(--muted-foreground))",
+		  },
+		  accent: {
+			DEFAULT: "hsl(var(--accent))",
+			foreground: "hsl(var(--accent-foreground))",
+		  },
+		  popover: {
+			DEFAULT: "hsl(var(--popover))",
+			foreground: "hsl(var(--popover-foreground))",
+		  },
+		  card: {
+			DEFAULT: "hsl(var(--card))",
+			foreground: "hsl(var(--card-foreground))",
+		  },
+		},
+		borderRadius: {
+		  lg: "var(--radius)",
+		  md: "calc(var(--radius) - 2px)",
+		  sm: "calc(var(--radius) - 4px)",
+		},
+		keyframes: {
+		  "accordion-down": {
+			from: { height: "0" },
+			to: { height: "var(--radix-accordion-content-height)" },
+		  },
+		  "accordion-up": {
+			from: { height: "var(--radix-accordion-content-height)" },
+			to: { height: "0" },
+		  },
+		  "overlay-show": {
+			from: { opacity: "0" },
+			to: { opacity: "1" },
+		  },
+		  "content-show": {
+			from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+			to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+		  },
+		},
+		animation: {
+		  "accordion-down": "accordion-down 0.2s ease-out",
+		  "accordion-up": "accordion-up 0.2s ease-out",
+		  "overlay-show": "overlay-show 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+		  "content-show": "content-show 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+		},
+	  },
+	},
+	plugins: ["tailwindcss-animate"],
+  }
+```
+
+- Add the Tailwind directives to `src/index.css`:
+```
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+- Install additional required dependencies for `shadcn/ui`:
+```
+npm install @radix-ui/react-dialog @radix-ui/react-tabs @radix-ui/react-select lucide-react tailwindcss-animate class-variance-authority clsx tailwind-merge
+```
+- Configure your `tsconfig.json` to include the following paths:
+```
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+
+```
+- Configure `tsconfig.app.json`:
+```
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}
+
+```
+
+- Update path in `vite.config.ts`:
+```
+npm install -D @types/node
+
+```
+
+```
+import path from 'path'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+})
+```
+
+- Install `shadecn/ui`, official documentation [here](https://ui.shadcn.com/docs/installation/vite): 
+
+```
+npx shadcn@latest init
+```
+- When prompted, choose:
+    - Default styling
+    - Color: `Slate`
+
+
+- Start the development server:
+
+```
+npm run dev
+```
+
+
+
+# Backend 
 An intelligent system that combines bank statement parsing, machine learning classification, and financial analysis to provide automated transaction categorization and spending insights.
 Features
 
@@ -49,7 +396,7 @@ The system employs a three-layer classification approach:
 
 ```
 # Clone repository
-git clone [repository-url]
+git clone https://github.com/LaUrrego/casca-project.git
 
 # Move into backend
 cd backend
