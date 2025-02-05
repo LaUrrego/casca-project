@@ -1,4 +1,14 @@
 # Casca Engineering Intern Coding Challenge
+
+There is a `frontend` section and a `backend` section in the repo. After cloning:
+
+```
+# Clone repository
+git clone https://github.com/LaUrrego/casca-project.git
+```
+
+Move into each directory as needed. 
+
 # Frontend
 A React-based web application for analyzing bank statements serving as an MVP for the Casca Engineering Intern coding challenge. Features real-time transaction categorization, interactive visualizations, and anomaly detection. The interface is styled using Tailwind CSS, incorporating shadcn/ui components.
 
@@ -134,9 +144,6 @@ The application connects to a backend service with the following endpoints:
 ### Installation Steps
 
 ```
-# Clone repository
-git clone https://github.com/LaUrrego/casca-project.git
-
 # Move into frontend
 cd frontend
 ```
@@ -395,9 +402,6 @@ The system employs a three-layer classification approach:
 ## Installation
 
 ```
-# Clone repository
-git clone https://github.com/LaUrrego/casca-project.git
-
 # Move into backend
 cd backend
 

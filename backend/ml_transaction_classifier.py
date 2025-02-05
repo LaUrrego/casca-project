@@ -148,7 +148,7 @@ class MLTransactionClassifier:
             
             # Check intervals if we have at least 2 valid parsed dates
             if len(dates) >= 2:
-                date_diffs = np.diff([dt.toordinal() for dt in dates])  # differences in days
+                date_diffs = np.diff([dt.toordinal() for dt in dates]) 
                 # Heuristic: stdev of intervals < 5 => consistent timing
                 if len(date_diffs) > 0:
                     regular_timing = np.std(date_diffs) < 5
@@ -201,7 +201,8 @@ class MLTransactionClassifier:
         predicted_labels = self.model.predict(X)
 
         # Isolation Forest anomaly detection
-        anomaly_flags = self.isolation_forest.predict(X)  # -1 => anomaly, 1 => normal
+        # -1 => anomaly, 1 => normal
+        anomaly_flags = self.isolation_forest.predict(X)  
 
         # Construct final classification with overrides
         classified = []

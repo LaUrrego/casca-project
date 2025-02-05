@@ -30,9 +30,12 @@ class GeneralBankStatementParser:
         
         # Date patterns to try (ordered by preference)
         self.DATE_PATTERNS = [
-            (r'(\d{1,2})[-\s/]([A-Za-z]{3,})[-\s/](\d{2,4})', '%d %B %Y'),  # 01 January 2023
-            (r'(\d{1,2})[-\s/](\d{1,2})[-\s/](\d{2,4})', '%d/%m/%Y'),      # 01/01/2023
-            (r'([A-Za-z]{3,})[-\s/](\d{1,2})[-\s/](\d{2,4})', '%B %d %Y')  # January 01 2023
+            # 01 January 2023
+            (r'(\d{1,2})[-\s/]([A-Za-z]{3,})[-\s/](\d{2,4})', '%d %B %Y'), 
+            # 01/01/2023 
+            (r'(\d{1,2})[-\s/](\d{1,2})[-\s/](\d{2,4})', '%d/%m/%Y'),  
+            # January 01 2023    
+            (r'([A-Za-z]{3,})[-\s/](\d{1,2})[-\s/](\d{2,4})', '%B %d %Y')  
         ]
         
         # Balance-related keywords
@@ -205,11 +208,11 @@ class GeneralBankStatementParser:
                 elif in_column("debit", x_mid):
                     amt = self.sanitize_amount(text)
                     if amt:
-                        amounts.append(-abs(amt))  # Make debit negative
+                        amounts.append(-abs(amt)) 
                 elif in_column("credit", x_mid):
                     amt = self.sanitize_amount(text)
                     if amt:
-                        amounts.append(abs(amt))   # Make credit positive
+                        amounts.append(abs(amt))   
                         
             line_text = line_text.strip()
             
@@ -246,7 +249,6 @@ class GeneralBankStatementParser:
         
         try:
             with pdfplumber.open(pdf_path) as pdf:
-                # Process each page
                 all_lines = []
                 for page in pdf.pages:
                     words = page.extract_words()
@@ -273,7 +275,6 @@ class GeneralBankStatementParser:
                     'amount': float(t['amount'])
                 } for t in transactions]
                 
-                # Calculate totals
                 if transactions:
                     debits = sum(float(t['amount']) for t in transactions if float(t['amount']) < 0)
                     credits = sum(float(t['amount']) for t in transactions if float(t['amount']) > 0)

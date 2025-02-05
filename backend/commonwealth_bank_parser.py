@@ -16,7 +16,6 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
 
     # Regex to detect date patterns like "14 Oct 2017" or "14 Oct"
     DATE_REGEX = re.compile(r"\b(\d{1,2}\s+[A-Za-z]{3}(?:\s+\d{4})?)\b", re.IGNORECASE)
-    # DATE_REGEX = re.compile(r"\b(\d{1,2}\s+[A-Za-z]{3}(?:\s+\d{4})?)(?=\s|[A-Z])", re.IGNORECASE)
 
     REQUIRED_HEADERS = {"Date", "Transaction", "Debit", "Credit"}
 
@@ -27,7 +26,6 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
     statement_info = {"opening_balance": None, "closing_balance": None}
     transactions = []
 
-    ################ HELPER FUNCTIONS ################
     def group_words_by_line(words: List[Dict], tolerance: float) -> List[List[Dict]]:
         """Group pdfplumber words into lines by approximate y-coordinate."""
         lines = []
@@ -117,7 +115,7 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
         col_start, col_end = col
         
         # If checking debit column
-        if col_end < 400:  # Debit column ends before x=400
+        if col_end < 400:  
             # Use tighter buffer for debit column
             return (col_start - 3.0) <= x_mid <= (col_end + 3.0)
         
@@ -155,8 +153,8 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
     def parse_all_amounts_in_line(line_words: List[Dict], columns: Dict[str, Tuple[float,float]]) -> List[Decimal]:
         """
         Return a list of amounts in the order they appear left-to-right.
-        * Debit column amounts are negative
-        * Credit column amounts are positive
+        - Debit column amounts are negative
+        - Credit column amounts are positive
         This way, if the line has multiple transactions, we can pick them up individually.
         """
         if not columns:
@@ -193,8 +191,7 @@ def parse_full_featured_statement(pdf_path: str) -> Dict:
 
         # Sort by x-coordinate just in case they overlap or appear in different positions
         amounts_with_x.sort(key=lambda x: x[0])
-        ##############################################################################
-        print("Amounts with x:\n", amounts_with_x)
+
         # Return them in left-to-right order
         return [amt for (_, amt) in amounts_with_x]
 

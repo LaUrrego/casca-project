@@ -22,10 +22,8 @@ def analyze_transactions(
     largest_expense = {"amount": 0.0, "description": "", "date": ""}
     largest_income = {"amount": 0.0, "description": "", "date": ""}
 
-    # We'll collect unusual transactions separately
     unusual_transactions = []
 
-    # Similarly, track recurring items
     recurring_spend = 0.0
     recurring_items = []
 
@@ -71,8 +69,7 @@ def analyze_transactions(
     # Calculate net change
     net_change = total_income - total_expenses
     
-    # Optional: Compare net change with (closing_balance - opening_balance)
-    # to see if there's any discrepancy
+
     if opening_balance and closing_balance:
         actual_balance_change = closing_balance - opening_balance
         balance_discrepancy = round(net_change - actual_balance_change, 2)
